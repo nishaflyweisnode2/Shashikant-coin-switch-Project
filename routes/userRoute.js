@@ -24,7 +24,12 @@ module.exports = (app) => {
     app.put('/api/v1/user/documents', [authJwt.verifyToken], documentImage.single('image'), auth.updateDocuments);
     app.put('/api/v1/user/updateDLDetails', [authJwt.verifyToken], kpUpload, auth.updateDLDetails);
     app.put('/api/v1/user/updatepassportDetails', [authJwt.verifyToken], kpUpload1, auth.updatePassportDetails);
-
+    app.put('/api/v1/user/notifications/:notificationId', [authJwt.verifyToken], auth.markNotificationAsRead);
+    app.get('/api/v1/user/notifications/user', [authJwt.verifyToken], auth.getNotificationsForUser);
+    app.get('/api/v1/user/AboutUs', [authJwt.verifyToken], auth.getAllAboutUs);
+    app.get('/api/v1/user/AboutUs/:id', [authJwt.verifyToken], auth.getAboutUsById);
+    app.get('/api/v1/user/terms-and-conditions', [authJwt.verifyToken], auth.getAllTermAndCondition);
+    app.get('/api/v1/user/terms-and-conditions/:id', [authJwt.verifyToken], auth.getTermAndConditionById);
 
 
 

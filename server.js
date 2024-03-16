@@ -19,7 +19,7 @@ app.get("/", (req, res) => {
 });
 
 require('./routes/userRoute')(app);
-// require('./routes/adminRoute')(app);
+require('./routes/adminRoute')(app);
 // require('./routes/partnerRoute')(app);
 
 

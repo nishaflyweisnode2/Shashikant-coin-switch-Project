@@ -5,7 +5,8 @@ const newOTP = require("otp-generators");
 const mongoose = require('mongoose');
 const Notification = require('../models/notificationModel');
 const bcrypt = require("bcryptjs");
-// const City = require('../models/cityModel');
+const AboutUs = require('../models/aboutUsModel');
+const TermAndCondition = require('../models/term&conditionModel');
 
 
 
@@ -36,9 +37,9 @@ exports.loginWithPhone = async (req, res) => {
             const newUser = await User.create({ mobileNumber: mobileNumber, otp, otpExpiration, accountVerification, userType: "USER" });
             const welcomeMessage = `Welcome, ${newUser.mobileNumber}! Thank you for registering.`;
             const welcomeNotification = new Notification({
-                recipient: newUser._id,
+                userId: newUser._id,
+                title: "welcome",
                 content: welcomeMessage,
-                type: 'welcome',
             });
             await welcomeNotification.save();
 
@@ -229,7 +230,7 @@ exports.editProfile = async (req, res) => {
     try {
         const userId = req.user._id;
 
-        const { fullName, email, password, confirmPassword, mobileNumber, documentCountry } = req.body;
+        const { fullName, email, password, confirmPassword, mobileNumber, documentCountry, review } = req.body;
 
         if (password !== confirmPassword) {
             return res.status(400).json({ status: 400, message: 'Passwords and ConfirmPassword do not match' });
@@ -244,6 +245,7 @@ exports.editProfile = async (req, res) => {
         }
         if (mobileNumber) updateObject.mobileNumber = mobileNumber;
         if (documentCountry) updateObject.documentCountry = documentCountry;
+        if (review) updateObject.review = review;
 
         const updatedUser = await User.findByIdAndUpdate(
             userId,
@@ -352,5 +354,104 @@ exports.updatePassportDetails = async (req, res) => {
     } catch (error) {
         console.error(error);
         return res.status(500).json({ status: 500, error: 'Internal Server Error' });
+    }
+};
+
+exports.markNotificationAsRead = async (req, res) => {
+    try {
+        const notificationId = req.params.notificationId;
+
+        const notification = await Notification.findByIdAndUpdate(
+            notificationId,
+            { status: 'read' },
+            { new: true }
+        );
+
+        if (!notification) {
+            return res.status(404).json({ status: 404, message: 'Notification not found' });
+        }
+
+        return res.status(200).json({ status: 200, message: 'Notification marked as read', data: notification });
+    } catch (error) {
+        return res.status(500).json({ status: 500, message: 'Error marking notification as read', error: error.message });
+    }
+};
+
+exports.getNotificationsForUser = async (req, res) => {
+    try {
+        const userId = req.user._id;
+        console.log(userId);
+        const user = await User.findById(userId);
+        if (!user) {
+            return res.status(404).json({ status: 404, message: 'User not found' });
+        }
+
+        const notifications = await Notification.find({ userId: userId }).populate('userId');
+
+        return res.status(200).json({ status: 200, message: 'Notifications retrieved successfully', data: notifications });
+    } catch (error) {
+        return res.status(500).json({ status: 500, message: 'Error retrieving notifications', error: error.message });
+    }
+};
+
+exports.getAllAboutUs = async (req, res) => {
+    try {
+        const termAndCondition = await AboutUs.find();
+
+        if (!termAndCondition) {
+            return res.status(404).json({ status: 404, message: 'About Us not found' });
+        }
+
+        return res.status(200).json({ status: 200, message: "Sucessfully", data: termAndCondition });
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({ status: 500, message: 'Internal server error', details: error.message });
+    }
+};
+
+exports.getAboutUsById = async (req, res) => {
+    try {
+        const termAndConditionId = req.params.id;
+        const termAndCondition = await AboutUs.findById(termAndConditionId);
+
+        if (!termAndCondition) {
+            return res.status(404).json({ status: 404, message: 'About Us not found' });
+        }
+
+        return res.status(200).json({ status: 200, message: 'Sucessfully', data: termAndCondition });
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({ status: 500, message: 'Internal server error', details: error.message });
+    }
+};
+
+exports.getAllTermAndCondition = async (req, res) => {
+    try {
+        const termAndCondition = await TermAndCondition.find();
+
+        if (!termAndCondition) {
+            return res.status(404).json({ status: 404, message: 'Terms and Conditions not found' });
+        }
+
+        return res.status(200).json({ status: 200, message: "Sucessfully", data: termAndCondition });
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({ status: 500, message: 'Internal server error', details: error.message });
+    }
+};
+
+exports.getTermAndConditionById = async (req, res) => {
+    try {
+        const termAndConditionId = req.params.id;
+        const termAndCondition = await TermAndCondition.findById(termAndConditionId);
+
+        if (!termAndCondition) {
+            return res.status(404).json({ status: 404, message: 'Terms and Conditions not found' });
+        }
+
+        return res.status(200).json({ status: 200, message: 'Sucessfully', data: termAndCondition });
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({ status: 500, message: 'Internal server error', details: error.message });
     }
 };
